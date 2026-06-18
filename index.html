@@ -57,7 +57,7 @@
         }
 
         #ui-container {
-            display: none; /* Hidden by default at start since Normal Mode is active */
+            display: none; 
             grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
             gap: 15px;
             margin-top: 15px;
@@ -275,7 +275,6 @@
     let score = 0;
     let coins = 0;
     let username = "Guest";
-    // FIX: Set to false by default so game launches in standard Normal Mode
     let isPractice = false; 
     let nameLocked = false;
     let gameOver = false;
@@ -311,7 +310,6 @@
         mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
     });
 
-    // FIX: Wiped current wallet balance when switching modes so practice funds don't carry into live mode
     document.getElementById("practiceModeToggle").addEventListener("change", e => {
         isPractice = e.target.checked;
         document.getElementById("ui-container").style.display = isPractice ? "grid" : "none";
@@ -403,9 +401,11 @@
         let currentEnemyHp = getCurrentEnemyBaseHp();
         let tapsRequired = currentEnemyHp / currentPlayerDmg;
 
+        // FIX: Requires enemy to take 25 or more taps to kill before buying is permitted
         if(coins >= 250 && tapsRequired >= 25) {
             coins -= 250;
-            dmgUpgrade += 2.125; 
+            // Instantly calculates new dmgUpgrade multiplier based on current health to match exactly a 4-tap clear!
+            dmgUpgrade = (currentEnemyHp / 4) / (isPractice ? parseInt(document.getElementById("bulletDmgSlider").value) : BASE_BULLET_DMG); 
         }
     });
 
@@ -579,6 +579,7 @@
         let activeEnemyHp = getCurrentEnemyBaseHp();
         let currentTapsToKill = activeEnemyHp / activePowerDmg;
 
+        // FIX: Lock the button state until current taps needed to eliminate enemies reaches or surpasses 25
         document.getElementById("buy-dmg-btn").disabled = coins < 250 || currentTapsToKill < 25;
         document.getElementById("buy-speed-btn").disabled = coins < 70;
         
