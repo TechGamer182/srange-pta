@@ -57,7 +57,7 @@
         }
 
         #ui-container {
-            display: grid; 
+            display: none; /* Hidden by default at start since Normal Mode is active */
             grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
             gap: 15px;
             margin-top: 15px;
@@ -189,7 +189,7 @@
 
     <div id="top-bar">
         <div id="mode-toggle-container">
-            <input type="checkbox" id="practiceModeToggle" checked>
+            <input type="checkbox" id="practiceModeToggle">
             <label for="practiceModeToggle">Practice Mode (No High Scores)</label>
         </div>
 
@@ -264,7 +264,7 @@
     </div>
 
 <script>
-    const dbClient = supabase.createClient('https://iaoktfbuemkhnlepvqoz.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhb2t0ZmJ1ZW1raG5sZXB2cW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjYyNzcsImV4cCI6MjA5NzMwMjI3N30.7OD44WN84xiX3N5LfdlgnpJkH8ufYTCXW8ktBEW3gZ8');
+    const dbClient = supabase.createClient('https://YOUR_SUPABASE_URL.supabase.co', 'YOUR_SUPABASE_ANON_KEY');
 
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
@@ -275,7 +275,8 @@
     let score = 0;
     let coins = 0;
     let username = "Guest";
-    let isPractice = true; 
+    // FIX: Set to false by default so game launches in standard Normal Mode
+    let isPractice = false; 
     let nameLocked = false;
     let gameOver = false;
 
@@ -310,22 +311,23 @@
         mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
     });
 
+    // FIX: Wiped current wallet balance when switching modes so practice funds don't carry into live mode
     document.getElementById("practiceModeToggle").addEventListener("change", e => {
-      isPractice = e.target.checked;
-      document.getElementById("ui-container").style.display = isPractice ? "grid" : "none";
-    
-      // FIX: Clear the wallet and upgrades when shifting between practice and live play
-      coins = 0;
-      score = 0;
-      dmgUpgrade = 1.0;
-      speedUpgrade = 0;
-    
-      // Clear active objects so the fresh mode starts cleanly
-      bullets = [];
-      targets = [];
-      droppedCoins = [];
-      for(let i=0; i<6; i++) generateEnemy();
-});
+        isPractice = e.target.checked;
+        document.getElementById("ui-container").style.display = isPractice ? "grid" : "none";
+        
+        coins = 0;
+        score = 0;
+        dmgUpgrade = 1.0;
+        speedUpgrade = 0;
+        currentWave = 1;
+        waveTimer = 0;
+        
+        bullets = [];
+        targets = [];
+        droppedCoins = [];
+        for(let i=0; i<6; i++) generateEnemy();
+    });
 
     document.getElementById("rangeSlider").addEventListener("input", e => document.getElementById("rangeValue").textContent = e.target.value);
     document.getElementById("bulletDmgSlider").addEventListener("input", e => document.getElementById("bulletDmgValue").textContent = e.target.value);
