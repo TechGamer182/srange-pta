@@ -201,8 +201,8 @@
             </div>
             <div class="slider-group">
                 <label for="bulletDmgSlider">Bullet Damage:</label>
-                <input type="range" id="bulletDmgSlider" min="5" max="100" value="12">
-                <span id="bulletDmgValue">12</span>
+                <input type="range" id="bulletDmgSlider" min="5" max="100" value="24">
+                <span id="bulletDmgValue">24</span>
             </div>
             <div class="slider-group">
                 <label for="enemyHpSlider">Enemy Health:</label>
@@ -286,7 +286,8 @@
     let dmgUpgrade = 1.0;
     let speedUpgrade = 0;
     
-    const BASE_BULLET_DMG = 12;
+    // NEW CALIBRATION: 96 HP / 24 BASE DMG = Exactly 4 taps to kill on startup
+    const BASE_BULLET_DMG = 24;
     const START_ENEMY_HP = 96; 
     const HP_INCREASE_PER_WAVE = 17; 
 
@@ -397,15 +398,15 @@
     });
 
     document.getElementById("buy-dmg-btn").addEventListener("click", () => {
-        let currentPlayerDmg = (isPractice ? parseInt(document.getElementById("bulletDmgSlider").value) : BASE_BULLET_DMG) * dmgUpgrade;
+        let currentBulletBase = isPractice ? parseInt(document.getElementById("bulletDmgSlider").value) : BASE_BULLET_DMG;
         let currentEnemyHp = getCurrentEnemyBaseHp();
-        let tapsRequired = currentEnemyHp / currentPlayerDmg;
+        let tapsRequired = currentEnemyHp / (currentBulletBase * dmgUpgrade);
 
-        // FIX: Requires enemy to take 25 or more taps to kill before buying is permitted
+        // Locked until enemy scales to need 25+ taps
         if(coins >= 250 && tapsRequired >= 25) {
             coins -= 250;
-            // Instantly calculates new dmgUpgrade multiplier based on current health to match exactly a 4-tap clear!
-            dmgUpgrade = (currentEnemyHp / 4) / (isPractice ? parseInt(document.getElementById("bulletDmgSlider").value) : BASE_BULLET_DMG); 
+            // Dynamically recalculates to drop them right back down to a clean 4-tap clear
+            dmgUpgrade = (currentEnemyHp / 4) / currentBulletBase; 
         }
     });
 
@@ -579,7 +580,7 @@
         let activeEnemyHp = getCurrentEnemyBaseHp();
         let currentTapsToKill = activeEnemyHp / activePowerDmg;
 
-        // FIX: Lock the button state until current taps needed to eliminate enemies reaches or surpasses 25
+        // Button locks until the player drops into a deep 25+ tap hole
         document.getElementById("buy-dmg-btn").disabled = coins < 250 || currentTapsToKill < 25;
         document.getElementById("buy-speed-btn").disabled = coins < 70;
         
